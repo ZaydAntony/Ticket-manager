@@ -32,7 +32,7 @@ Think of it as your **helpdesk brain 🧠 + assistant 🤖 + manager 👨‍💼
 
 📌 **Assignments**
 
-* Assign tickets to users
+* Assign tickets to Technicians
 * Manage workload distribution
 
 🗒 **Worklogs**
@@ -67,7 +67,7 @@ We use **JWT (JSON Web Tokens)** via:
 Base URL:
 
 ```
-/ticket-manager/
+/api/v1/
 ```
 
 ---
@@ -92,6 +92,9 @@ Base URL:
 | `/ticket/<id>/`        | GET       | Retrieve ticket       |
 | `/ticket/update/<id>/` | PUT/PATCH | Update ticket         |
 | `/ticket/delete/<id>/` | DELETE    | Delete ticket         |
+| `/ticket/<id>/ai-summary` | POST , GET  | Post and get ai summarry ticket |
+| `/ticket/<id>/worklogs/`| POST,GET,PUT,PATCH,DELETE| ticket worklogs by technician|
+
 
 ---
 
@@ -104,24 +107,6 @@ Base URL:
 | `/assignment/update/<id>/` | PUT/PATCH | Update assignment         |
 | `/assignment/delete/<id>/` | DELETE    | Delete assignment         |
 
----
-
-### 🗒 Worklogs
-
-| Endpoint                | Method    | Description            |
-| ----------------------- | --------- | ---------------------- |
-| `/worklogs/`            | GET, POST | List / Create worklogs |
-| `/worklog/<id>/`        | GET       | Retrieve worklog       |
-| `/worklog/update/<id>/` | PUT/PATCH | Update worklog         |
-| `/worklog/delete/<id>/` | DELETE    | Delete worklog         |
-
----
-
-### 🤖 AI Summary
-
-| Endpoint        | Method | Description                      |
-| --------------- | ------ | -------------------------------- |
-| `/ai_summarry/` | POST   | Generate AI summary for a ticket |
 
 ---
 
@@ -148,8 +133,8 @@ IsOwnerOrAdmin
 * 🐍 Python
 * 🌐 Django
 * ⚡ Django REST Framework
-* 🔐 JWT Authentication (`simplejwt`)
-* 🧠 AI Service Integration
+* 🔐 JWT Authentication (`simplejwt`) with djoser
+* 🧠 AI Service Integration - openrouter Api Key
 
 ---
 
@@ -223,4 +208,4 @@ It demonstrates:
 
 ---
 
-🔥 Built with passion and curiosity.
+🔥 Built with a goal to get myself out there.
