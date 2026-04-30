@@ -13,7 +13,7 @@ class TestTicketApi:
     def test_if_user_is_anonymous_return_401(self):
         client = APIClient()
 
-        response = client.post('/ticket/', {
+        response = client.post('/api/v1/tickets/', {
             "title": "Test",
             "location": "Nairobi",
             "description": "Test issue",
@@ -32,7 +32,7 @@ class TestTicketApi:
         client = APIClient()
         client.force_authenticate(user=admin)
 
-        response = client.post('/ticket/', {
+        response = client.post('/api/v1/tickets/', {
             "title": "",
             "location": "",
             "description": "",
@@ -53,7 +53,7 @@ class TestTicketApi:
         client = APIClient()
         client.force_authenticate(user=admin)
 
-        response = client.post('/ticket/', {
+        response = client.post('/api/v1/tickets/', {
             "title": "Test title",
             "location": "Nairobi",
             "description": "Test issue",

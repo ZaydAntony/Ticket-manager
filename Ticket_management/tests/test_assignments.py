@@ -14,7 +14,7 @@ class TestAssignmentApi:
     def test_if_user_is_anonymous_return_401(self):
         client = APIClient()
 
-        response = client.post('/assignment/', {
+        response = client.post('/api/v1/assignment/', {
             "ticket": 1
         })
 
@@ -31,7 +31,7 @@ class TestAssignmentApi:
         client = APIClient()
         client.force_authenticate(user=user)
 
-        response = client.post('/assignment/', {
+        response = client.post('/api/v1/assignment/', {
             "ticket": 1
         })
 
@@ -48,7 +48,7 @@ class TestAssignmentApi:
         client = APIClient()
         client.force_authenticate(user=admin)
 
-        response = client.post('/assignment/', {
+        response = client.post('/api/v1/assignment/', {
             "ticket": ""
         })
 
@@ -74,7 +74,7 @@ class TestAssignmentApi:
             user=admin
         )
 
-        response = client.post('/assignment/', {
+        response = client.post('/api/v1/assignment/', {
             "ticket": ticket.id,
             "user":admin.id
         })

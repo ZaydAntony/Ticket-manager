@@ -3,6 +3,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
+from model_bakery import baker
 from Ticket_management.models import Ticket
 
 User = get_user_model()
@@ -12,10 +13,17 @@ User = get_user_model()
 class TestWorklogApi:
 
     def test_if_user_is_anonymous_return_401(self):
-        client = APIClient()
+        admin = User.objects.create_user(
+            username='admin',
+            password='pass',
+            is_staff=True
+        )
 
-        response = client.post('/worklog/', {
-            "ticket": 1
+        client = APIClient()
+        ticket=baker.make(Ticket)
+        response = client.post(f'/api/v1/tickets/{ticket.id}/worklogs/',{
+            "notes":"test note",
+            "user":admin.id
         })
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -29,10 +37,9 @@ class TestWorklogApi:
 
         client = APIClient()
         client.force_authenticate(user=admin)
+        ticket = baker.make(Ticket)
 
-        response = client.post('/worklog/', {
-            "ticket": ""
-        })
+        response = client.post(f'/api/v1/tickets/{ticket.id}/worklogs/')
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data is not None
@@ -48,17 +55,10 @@ class TestWorklogApi:
         client = APIClient()
         client.force_authenticate(user=admin)
 
-        ticket = Ticket.objects.create(
-            title="Test title",
-            location="Nairobi",
-            description="Test issue",
-            status="P",
-            user=admin
-        )
+        ticket = baker.make(Ticket)
 
-        response = client.post('/worklog/', {
-            "notes":"Test note",
-            "ticket": ticket.id,
+        response = client.post(f'/api/v1/tickets/{ticket.id}/worklogs/',{
+            "notes":"test note",
             "user":admin.id
         })
 
