@@ -1,3 +1,7 @@
 .env
 general.log
-/static/
+staticfiles/
+.venv/
+venv/
+.pyc
+__pycache__/

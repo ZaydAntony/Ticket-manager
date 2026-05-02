@@ -16,6 +16,8 @@ django-debug-toolbar = "*"
 drf-nested-routers = "*"
 gunicorn = "*"
 dj-database-url = "*"
+psycopg2-binary = "*"
+whitenoise = "*"
 
 [dev-packages]
 pytest = "*"

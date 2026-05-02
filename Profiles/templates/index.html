@@ -1,16 +1,32 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Ticketing API</title>
     <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
 <body>
-    <div class="home-page">
-        <h1>Welcome to the Ticketing System</h1>
+
+    <div class="wrapper">
+        <div class="content">
+            <h1>Smart Ticket Management System</h1>
+            <p class="subtitle">
+                Backend service is running.
+            </p>
+            <p class="meta">
+                API status: <span class="status">● Online</span>
+            </p>
+            <p class="meta">
+                Django • DRF • AI-powered processing
+            </p>
+        </div>
+
+        <div class="illustration">
+            <img src="{% static 'images/landing.svg' %}" alt="system illustration">
+        </div>
     </div>
+
 </body>
 </html>
