@@ -135,6 +135,7 @@ IsOwnerOrAdmin
 * ⚡ Django REST Framework
 * 🔐 JWT Authentication (`simplejwt`) with djoser
 * 🧠 AI Service Integration - openrouter Api Key
+*    Pytest - Incooperated integrated testing for the various behaviours expected.
 
 ---
 
@@ -144,7 +145,7 @@ IsOwnerOrAdmin
 
 ```bash
 git clone <your-repo-url>
-cd ticketingcore
+
 ```
 
 ### 2️⃣ Create virtual environment
@@ -180,7 +181,7 @@ python manage.py runserver
 1. Register user 📝
 2. Login → get token 🔐
 3. Create ticket 🎟
-4. Generate AI summary 🤖
+4. Generate AI summary 🤖 - Admins
 5. Assign ticket 📌
 6. Add worklogs 🗒
 
@@ -188,7 +189,6 @@ python manage.py runserver
 
 ## 💡 Future Improvements
 
-* 🔍 Search & filtering
 * 📊 Dashboard analytics
 * 📩 Email notifications
 * 🌍 Frontend integration (React / Remix)

@@ -2,6 +2,7 @@ import json
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth import get_user_model
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import ListCreateAPIView
@@ -9,9 +10,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from .permissions import IsTechnician
 from .models import Ticket, Ai_summarry, Assignment, Worklog
 from .serializers import (
     TicketSerializer,
+    UserTicketSerializer,
     Ai_SummarrySerializer,
     AssignmentSerializer,
     WorklogSerializer,
@@ -22,7 +25,6 @@ from .pagination import defaultPagination
 
 
 class TicketViewSet(ModelViewSet):
-    serializer_class = TicketSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = TicketFilter
     search_fields = ["ticket__title", "user__username"]
@@ -38,6 +40,13 @@ class TicketViewSet(ModelViewSet):
         if user.is_staff:
             return queryset
         return queryset.filter(user=user)
+
+    def get_serializer_class(self):
+        user = self.request.user
+        User = get_user_model()
+        if user.role==User.USER_CLIENT:
+            return UserTicketSerializer
+        return TicketSerializer
 
     def get_permissions(self):
         if self.request.method in ["GET", "PUT", "DELETE"]:
@@ -117,7 +126,7 @@ class WorklogViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = WorklogFilter
     ordering_fields = ["created_at"]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsTechnician]
 
     def get_queryset(self):
         user = self.request.user
