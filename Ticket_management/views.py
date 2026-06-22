@@ -29,8 +29,7 @@ class TicketViewSet(ModelViewSet):
     filterset_class = TicketFilter
     search_fields = ["ticket__title", "user__username"]
     ordering_fields = ["created_at"]
-    pagination_class = defaultPagination
-
+    #pagination_class = defaultPagination
     def get_queryset(self):
         user = self.request.user
         queryset = Ticket.objects.select_related(
@@ -39,12 +38,14 @@ class TicketViewSet(ModelViewSet):
 
         if user.is_staff:
             return queryset
-        return queryset.filter(user=user)
+        if user.role == "T":  
+            return Ticket.objects.filter(assignment__user=user)
+        return queryset.filter(user=user)   # clients see only their own
 
     def get_serializer_class(self):
         user = self.request.user
         User = get_user_model()
-        if user.role==User.USER_CLIENT:
+        if user.role=='U':
             return UserTicketSerializer
         return TicketSerializer
 
@@ -72,15 +73,18 @@ class TicketViewSet(ModelViewSet):
 
 class AiSummarry(ListCreateAPIView):
     http_method_names = ["post", "get"]
-    queryset = Ai_summarry.objects.select_related("ticket").all()
+    
     serializer_class = Ai_SummarrySerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = Ai_summarryFilter
     ordering_fields = ["created_at"]
     permission_classes = [IsAuthenticated, IsAdminUser]
+    
+    def  get_queryset(self):
+        return Ai_summarry.objects.filter(ticket_id=self.kwargs["tickets_pk"])
 
     def get_serializer_context(self):
-        return {"ticket_id": self.kwargs["Ticket_pk"]}
+        return {"ticket_id": self.kwargs["tickets_pk"]}
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -107,7 +111,6 @@ class AiSummarry(ListCreateAPIView):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
 class AssignmentViewSet(ModelViewSet):
     queryset = Assignment.objects.select_related("ticket", "user").all()
     serializer_class = AssignmentSerializer
@@ -115,7 +118,21 @@ class AssignmentViewSet(ModelViewSet):
     filterset_class = AssignmentFilter
     search_fields = ["user__username", "ticket__title"]
     ordering_fields = ["created_at"]
-    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_permissions(self):
+        if self.action == 'list':
+            # Technicians can list to see their own assignments
+            return [IsAuthenticated()]
+        # Create/update/delete stays admin only
+        return [IsAuthenticated(), IsAdminUser()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Assignment.objects.select_related("ticket", "user").all()
+        if user.is_staff:
+            return qs
+        # Technician only sees their own assignments
+        return qs.filter(user=user)
 
     def get_serializer_context(self):
         return {"request": self.request}
@@ -126,14 +143,14 @@ class WorklogViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = WorklogFilter
     ordering_fields = ["created_at"]
-    permission_classes = [IsAuthenticated,IsTechnician]
+    #permission_classes = [IsAuthenticated,IsTechnician]
 
     def get_queryset(self):
         user = self.request.user
         queryset = Worklog.objects.select_related("ticket", "user").all()
-        if user.is_staff:
-            return queryset
-        return queryset.filter(user=user)
+        if user.role=='T':
+            return queryset.filter(user=user)
+        
 
     def get_serializer_context(self):
         return {"ticket_id": self.kwargs["tickets_pk"]}

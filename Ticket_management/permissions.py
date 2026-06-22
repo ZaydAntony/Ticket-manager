@@ -10,4 +10,4 @@ class IsTechnician(BasePermission):
             return True
 
         # Allow technicians (assuming role field)
-        return user.role == "Technician"
+        return user.role == "T"

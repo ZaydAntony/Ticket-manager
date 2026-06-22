@@ -24,10 +24,11 @@ load_dotenv(BASE_DIR / ".env")
 
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-OPENROUTER_API_KEY=os.getenv("OPEN_ROUTER_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1").split(",")
 # Application definition
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS","127.0.0.1:5500").split(",")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -40,11 +41,13 @@ INSTALLED_APPS = [
     "djoser",
     "rest_framework_simplejwt",
     "django_filters",
+    "corsheaders",
     "Ticket_management",
     "Profiles",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -56,8 +59,11 @@ MIDDLEWARE = [
 ]
 
 if DEBUG:
-    INSTALLED_APPS += ['debug_toolbar']
-    MIDDLEWARE.insert(1,"debug_toolbar.middleware.DebugToolbarMiddleware",)
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE.insert(
+        1,
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+    )
 ROOT_URLCONF = "ticketingcore.urls"
 AUTH_USER_MODEL = "Profiles.User"
 
@@ -111,17 +117,15 @@ USE_I18N = True
 USE_TZ = True
 
 
-
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/static/"
 
-STATIC_ROOT = BASE_DIR / "staticfiles"   # production folder
+STATIC_ROOT = BASE_DIR / "staticfiles"  # production folder
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",                 #your current assets
+    BASE_DIR / "static",  # your current assets
 ]
 
 # Default primary key field type
@@ -135,19 +139,17 @@ if DATABASE_URL:
     # Production (Render PostgreSQL)
     DATABASES = {
         "default": dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True
+            DATABASE_URL, conn_max_age=600, ssl_require=True
         )
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv("DB_NAME"),
-            'HOST': os.getenv("DB_HOST"),
-            'USER': os.getenv("DB_USER"),
-            'PASSWORD': os.getenv("DB_PASSWORD"),
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.getenv("DB_NAME"),
+            "HOST": os.getenv("DB_HOST"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
         }
     }
 
@@ -157,12 +159,15 @@ REST_FRAMEWORK = {
     ),
 }
 
-SIMPLE_JWT = {"AUTH_HEADER_TYPES": ("JWT",), "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30)}
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("JWT",),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+}
 
 DJOSER = {
     "SERIALIZERS": {
         "user_create": "Profiles.serializers.UserCreateSerializer",
-        "current_user": "Profiles.serializers.Serializer",
+        "current_user": "Profiles.serializers.UserSerializer",  # was "Serializer" — typo
     }
 }
 

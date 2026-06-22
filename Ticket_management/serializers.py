@@ -12,12 +12,17 @@ class TicketSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "location", "user", "ai_summarry", "ticket_worklogs"]
 
 class UserTicketSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
+
     class Meta:
         model = Ticket
-        fields =['id', 'title', 'location']
+        fields = ['id', 'title', 'location', 'user','status']
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Assignment
         fields = ["id", "user", "ticket"]
