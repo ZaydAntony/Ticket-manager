@@ -5,3 +5,4 @@ staticfiles/
 venv/
 .pyc
 __pycache__/
+locustfiles

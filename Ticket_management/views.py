@@ -5,12 +5,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import get_user_model
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, ListAPIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .permissions import IsTechnician
+from .permissions import IsTechnician,IsRoleAdmin
 from .models import Ticket, Ai_summarry, Assignment, Worklog
 from .serializers import (
     TicketSerializer,
@@ -18,10 +18,22 @@ from .serializers import (
     Ai_SummarrySerializer,
     AssignmentSerializer,
     WorklogSerializer,
+    TechnicianSerializer,
 )
 from .services import ai_services
 from .filters import TicketFilter, WorklogFilter, AssignmentFilter, Ai_summarryFilter
 from .pagination import defaultPagination
+
+User = get_user_model()
+
+class TechnicianListView(ListAPIView):
+    http_method_names = [ "get"]
+    permission_classes = [IsAuthenticated, IsRoleAdmin]
+    serializer_class = TechnicianSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(role="T")
+
 
 
 class TicketViewSet(ModelViewSet):
@@ -36,7 +48,7 @@ class TicketViewSet(ModelViewSet):
             "user", "ai_summarry"
         ).prefetch_related("ticket_worklogs")
 
-        if user.is_staff:
+        if user.role== "A":
             return queryset
         if user.role == "T":  
             return Ticket.objects.filter(assignment__user=user)
@@ -44,7 +56,6 @@ class TicketViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         user = self.request.user
-        User = get_user_model()
         if user.role=='U':
             return UserTicketSerializer
         return TicketSerializer
@@ -78,19 +89,19 @@ class AiSummarry(ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = Ai_summarryFilter
     ordering_fields = ["created_at"]
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsRoleAdmin]
     
     def  get_queryset(self):
-        return Ai_summarry.objects.filter(ticket_id=self.kwargs["tickets_pk"])
+        return Ai_summarry.objects.filter(ticket_id=self.kwargs["ticket_pk"])
 
     def get_serializer_context(self):
-        return {"ticket_id": self.kwargs["tickets_pk"]}
+        return {"ticket_id": self.kwargs["ticket_pk"]}
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        ticket = get_object_or_404(Ticket,id=self.kwargs["Ticket_id"])
+        ticket = get_object_or_404(Ticket,id=self.kwargs["ticket_pk"])
 
         ai_output = ai_services.generate_ai_summarry(ticket.description)
 
@@ -101,11 +112,23 @@ class AiSummarry(ListCreateAPIView):
                 {"error": "AI response format invalid"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        #mapping display
+        priority_map = {"high":"H", "low":"L"}
+        category_map ={
+            "billing":"B",
+            "complaint":"C",
+            "technical":"T",
+            "connectivity":"N",
+        }
+
+        raw_priority = (ai_data.get("priority") or "low").lower()
+        raw_category = (ai_data.get("category") or "technical").lower()
+
 
         serializer.save(
             summarry=ai_data.get("summary") or "No summary provided",
-            priority=ai_data.get("priority") or "Low",
-            category=ai_data.get("category") or "Technical",
+            priority=priority_map.get(raw_priority, "L"),
+            category=category_map.get(raw_category, "T"),
             suggestion=ai_data.get("suggestion") or "No suggestion provided",
         )
 
@@ -120,16 +143,15 @@ class AssignmentViewSet(ModelViewSet):
     ordering_fields = ["created_at"]
 
     def get_permissions(self):
-        if self.action == 'list':
-            # Technicians can list to see their own assignments
+        if self.action in ["list", "retrieve"]:
             return [IsAuthenticated()]
-        # Create/update/delete stays admin only
-        return [IsAuthenticated(), IsAdminUser()]
+
+        return [IsAuthenticated(), IsRoleAdmin()]
 
     def get_queryset(self):
         user = self.request.user
         qs = Assignment.objects.select_related("ticket", "user").all()
-        if user.is_staff:
+        if user.role=='A':
             return qs
         # Technician only sees their own assignments
         return qs.filter(user=user)
@@ -143,14 +165,22 @@ class WorklogViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = WorklogFilter
     ordering_fields = ["created_at"]
-    #permission_classes = [IsAuthenticated,IsTechnician]
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [IsAuthenticated()]
+
+        if self.action == "create":
+            return [IsAuthenticated(), IsTechnician()]
+
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         user = self.request.user
         queryset = Worklog.objects.select_related("ticket", "user").all()
         if user.role=='T':
             return queryset.filter(user=user)
-        
+        return queryset
 
     def get_serializer_context(self):
         return {"ticket_id": self.kwargs["tickets_pk"]}

@@ -18,4 +18,5 @@ urlpatterns =[
         views.AiSummarry.as_view(),
         name='ticket-ai-summary'
     ),
+    path('technicians',views.TechnicianListView.as_view(), name='technicians')
 ]

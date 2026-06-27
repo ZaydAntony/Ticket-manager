@@ -22,7 +22,7 @@ class WorklogFilter(FilterSet):
     class Meta:
         model = Worklog
         fields = {
-            'user': ['exact'],
+            #'user': ['exact'],
             'created_at': ['exact', 'gte', 'lte']
         }
 

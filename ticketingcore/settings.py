@@ -24,11 +24,14 @@ load_dotenv(BASE_DIR / ".env")
 
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1").split(",")
 # Application definition
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS","127.0.0.1:5500").split(",")
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -124,9 +127,7 @@ STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"  # production folder
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",  # your current assets
-]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

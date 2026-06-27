@@ -16,26 +16,37 @@ def generate_ai_summarry(ticket):
             """
     try:
         logger.info("Calling Open Ai API")
+        #print("SETTINGS KEY:", repr(settings.OPENROUTER_API_KEY))
+        
+        headers = {
+            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:8000",
+            "X-Title": "Ticket Summary",
+        }
+
+        payload = {
+            "model": "openai/gpt-4o-mini",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": {"type": "json_object"},
+            "max_tokens": 200,
+        }
+
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:8000",
-                "X-Title": "Ticket Summarry"
-            },
-            json={
-                "model": "openai/gpt-4o-mini",
-                "messages": [
-                    {"role": "user", "content": prompt}
-                ],
-                "max_tokens": 200,
-                "response_format": {"type": "json_object"},
-            },
-            timeout=15
+            headers=headers,
+            json=payload,
+            timeout=15,
         )
-        logger.info("response recieved ")
+
+        #print("Headers:", headers)
+        #print("Status:", response.status_code)
+        #print("Body:", response.text)
         data = response.json()
-    except requests.ConnectionError:
-        logger.critical("Failed to communicate with Open Ai API")
+        #print(data)
+        
+    except Exception as e:
+        print(e)
     return data["choices"][0]["message"]["content"]

@@ -1,13 +1,13 @@
 from rest_framework.permissions import BasePermission
 
 
+from rest_framework.permissions import BasePermission
+
 class IsTechnician(BasePermission):
     def has_permission(self, request, view):
-        user = request.user
+        return request.user.is_authenticated and request.user.role == "T"
 
-        # Allow admins
-        if user.is_staff:
-            return True
-
-        # Allow technicians (assuming role field)
-        return user.role == "T"
+class IsRoleAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == "A"
+        

@@ -1,32 +1,33 @@
 from rest_framework import serializers
 from .models import Ticket, Assignment, Worklog, Ai_summarry
-
-
-class TicketSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    ai_summarry = serializers.StringRelatedField(read_only=True)
-    ticket_worklogs = serializers.StringRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = Ticket
-        fields = ["id", "title", "location", "user", "ai_summarry", "ticket_worklogs"]
-
-class UserTicketSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    
-
-    class Meta:
-        model = Ticket
-        fields = ['id', 'title', 'location', 'user','status']
+from Profiles.models import User
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+
+    technician_name = serializers.CharField(
+        source="user.username",
+        read_only=True
+    )
+
+    ticket_title = serializers.CharField(
+        source="ticket.title",
+        read_only=True
+    )
+
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(role="T")
+    )
 
     class Meta:
         model = Assignment
-        fields = ["id", "user", "ticket"]
-
+        fields = [
+            "id",
+            "ticket",
+            "ticket_title",
+            "user",
+            "technician_name",
+        ]
 
 class WorklogSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
@@ -58,3 +59,49 @@ class Ai_SummarrySerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("This field is required.")
         return value
+
+
+class TechnicianSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "last_name"
+        ]
+
+class TicketSerializer(serializers.ModelSerializer):
+
+    user = serializers.StringRelatedField(read_only=True)
+
+    ai_summarry = Ai_SummarrySerializer(
+        read_only=True
+    )
+
+    ticket_worklogs = WorklogSerializer(
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = Ticket
+        fields = [
+            "id",
+            "title",
+            "description",
+            "location",
+            "status",
+            "user",
+            "ai_summarry",
+            "ticket_worklogs",
+        ]
+class UserTicketSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
+
+    class Meta:
+        model = Ticket
+        fields = ['id', 'title', 'description', 'location', 'user','status']
+
